@@ -1,6 +1,6 @@
 CHECKSVC=$(kubectl get svc -n evil|grep evil)
 if [[ $CHECKSVC == *"No resources found"* ]]; then
-   echo "nada"
+   echo "No Resources Found"
 else
    kubectl delete svc evilpetclinic -n evil
 fi
