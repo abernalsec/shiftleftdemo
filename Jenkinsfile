@@ -50,6 +50,7 @@ stage('Scan image with twistcli and Publish to Jenkins') {
 	 } finally {
             prismaCloudPublish resultsFilePattern: 'prisma-cloud-scan-results.json'
         }
+}
   
 
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
