@@ -36,21 +36,18 @@ node {
             sh 'sudo chmod a+x ./twistcli'
         }
     }
+	
 
-    stage('Scan image with twistcli') {
-        try {
-	          sh 'docker pull itresoldi/evilpetclinic:latest'
+stage('Scan image with twistcli and Publish to Jenkins') {
+      try {
+	    sh 'docker pull itresoldi/evilpetclinic:latest'  
             withCredentials([usernamePassword(credentialsId: 'twistlock_creds', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
-                sh 'curl -k -u $TL_USER:$TL_PASS --output ./twistcli https://$TL_CONSOLE/api/v1/util/twistcli'
-                sh 'sudo chmod a+x ./twistcli'
-                sh "./twistcli images scan --u $TL_USER --p $TL_PASS --address https://$TL_CONSOLE --details itresoldi/evilpetclinic:latest"
+            prismaCloudScanImage ca: '', cert: '', dockerAddress: 'unix:///var/run/docker.sock', ignoreImageBuildTime: true, image: 'itresoldi/evilpetclinic:latest', key: '', logLevel: 'debug', podmanPath: '', project: '', resultsFile: 'prisma-cloud-scan-results.json'
+	    sh 'curl -k -u $TL_USER:$TL_PASS --output ./twistcli https://$TL_CONSOLE/api/v1/util/twistcli'
+            sh 'sudo chmod a+x ./twistcli'
+            sh "./twistcli images scan --u $TL_USER --p $TL_PASS --address https://$TL_CONSOLE --details itresoldi/evilpetclinic:latest"
             }
-        } catch (err) {
-            echo err.getMessage()
-            echo "Error detected"
-			throw RuntimeException("Build failed for some specific reason!")
-        }
-    } finally {
+	 } finally {
             prismaCloudPublish resultsFilePattern: 'prisma-cloud-scan-results.json'
         }
   
