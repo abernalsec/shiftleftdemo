@@ -54,79 +54,19 @@ stage('Scan image with twistcli and Publish to Jenkins') {
   
 
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
-	sh 'docker pull bridgecrew/jenkins_bridgecrew_runner:latest'
 	withDockerContainer(image: 'bridgecrew/jenkins_bridgecrew_runner:latest') {              
 	sh "/run.sh aaba9c95-c632-5403-9762-24bbcd0a4611 https://github.com/ivan-tresoldi/shiftleftdemo"
 	}
 }
 
-stage("Scan Cloud Formation Template with API v2") {
-
-        def response
-
-
-        response = sh(script:"curl -sq -X POST -H 'x-redlock-auth: ${PC_TOKEN}' -H 'Content-Type: application/vnd.api+json' --url https://${AppStack}/iac/v2/scans --data-binary '@scan-asset.json'", returnStdout:true).trim()
-
-        def SCAN_ASSET = readJSON text: response
-
-        def SCAN_ID = SCAN_ASSET['data'].id
-        def SCAN_URL = SCAN_ASSET['data']['links'].url
-
-        //Upload files
-        sh(script:"curl -sq -X PUT  --url '${SCAN_URL}' -T 'files/deploy.yml'", returnStdout:true).trim()
-
-        //start the Scan
-        response = sh(script:"curl -sq -X POST -H 'x-redlock-auth: ${PC_TOKEN}' -H 'Content-Type: application/vnd.api+json' --url https://${AppStack}/iac/v2/scans/${SCAN_ID} --data-binary '@scan-start-k8s.json'", returnStdout:true).trim()
-
-
-        //Get the Status
-        def SCAN_STATUS
-        def STATUS
-
-        //Need a Do-While loop here.   Haven't found a good syntax with Groovy in Jenkins
-        response = sh(script:"curl -sq -H 'x-redlock-auth: ${PC_TOKEN}' -H 'Content-Type: application/vnd.api+json' --url https://${AppStack}/iac/v2/scans/${SCAN_ID}/status", returnStdout:true).trim()
-        SCAN_STATUS = readJSON text: response
-        STATUS = SCAN_STATUS['data']['attributes']['status']
-
-        while  (STATUS == 'processsing'){
-            response = sh(script:"curl -sq -H 'x-redlock-auth: ${PC_TOKEN}' -H 'Content-Type: application/vnd.api+json' --url https://${AppStack}/iac/v2/scans/${SCAN_ID}/status", returnStdout:true).trim()
-            SCAN_STATUS = readJSON text: response
-            STATUS = SCAN_STATUS['data']['attributes']['status']
-            print "${STATUS}"
-
-        }
-
-        //Get the Results
-        response = sh(script:"curl -sq -H 'x-redlock-auth: ${PC_TOKEN}' -H 'Content-Type: application/vnd.api+json' --url https://${AppStack}/iac/v2/scans/${SCAN_ID}/results", returnStdout:true).trim()
-        def SCAN_RESULTS= readJSON text: response
-
-        print "${SCAN_RESULTS}"
-
-}
-
-//    files.each { item ->
-//        stage("Scan IaC file ${item} with twistcli") {
-//            try {
-//                withCredentials([usernamePassword(credentialsId: 'prisma_cloud', passwordVariable: 'PC_PASS', usernameVariable: 'PC_USER')]) {
-//                    //sh "./twistcli iac scan --u $PC_USER --p $PC_PASS --asset-name "Jenkins IaC" --tags env:jenkins --compliance-threshold high --address https://$PC_CONSOLE --files files/${item}"
-//                    sh "./twistcli iac scan --u $PC_USER --p $PC_PASS --type k8s --asset-name evilpetclinic --compliance-threshold medium --address https://$PC_CONSOLE files/${item}"
-//                }
-//            } catch (err) {
-//                echo err.getMessage()
-//                echo "Error detected"
-//				throw RuntimeException("Build failed for some specific reason!")
-//            }
-//	    }
-//    }
-
-    stage('Deploy evilpetclinic') {
+stage('Deploy evilpetclinic') {
         sh 'kubectl create ns evil --dry-run -o yaml | kubectl apply -f -'
         sh 'kubectl delete --ignore-not-found=true -f files/deploy.yml -n evil'
         sh 'kubectl apply -f files/deploy.yml -n evil'
         sh 'sleep 10'
     }
 
-    stage('Run bad Runtime attacks') {
+stage('Run bad Runtime attacks') {
         sh('chmod +x files/runtime_attacks.sh && ./files/runtime_attacks.sh')
     }
 
