@@ -71,7 +71,7 @@ stage('Run bad Runtime attacks') {
     }
 
     stage('Run bad HTTP stuff for WAAS to catch') {
-        sh('chmod +x files/waas_attacks.sh && ./files/waas_attacks.sh')
+        sh('chmod +x files/waas_attacks.sh && ./files/waas_attacks_8080.sh')
     }
 	
 }
