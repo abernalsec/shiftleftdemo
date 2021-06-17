@@ -1,5 +1,5 @@
 node {
-    files= ['deploy.yml']
+    files = ['deploy.yml']
 
     withCredentials([usernamePassword(credentialsId: 'prisma_cloud', passwordVariable: 'PC_PASS', usernameVariable: 'PC_USER')]) {
     PC_TOKEN = sh(script:"curl -s -k -H 'Content-Type: application/json' -H 'accept: application/json' --data '{\"username\":\"$PC_USER\", \"password\":\"$PC_PASS\"}' https://${AppStack}/login | jq --raw-output .token", returnStdout:true).trim()
@@ -56,7 +56,8 @@ stage('Scan image with twistcli and Publish to Jenkins') {
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
 	withDockerContainer(image: 'bridgecrew/jenkins_bridgecrew_runner:latest') {              
 	sh "/run.sh aaba9c95-c632-5403-9762-24bbcd0a4611 https://github.com/ivan-tresoldi/shiftleftdemo"
-	if ($1 = 1) {
+	exit_code == $1
+	if (exit_code == "1") {
       		error('Aborting the build due to non-compliances in IaC scanning.')
     }
 	}
