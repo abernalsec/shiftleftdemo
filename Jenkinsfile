@@ -56,6 +56,9 @@ stage('Scan image with twistcli and Publish to Jenkins') {
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
 	withDockerContainer(image: 'bridgecrew/jenkins_bridgecrew_runner:latest') {              
 	sh "/run.sh aaba9c95-c632-5403-9762-24bbcd0a4611 https://github.com/ivan-tresoldi/shiftleftdemo"
+	if ($1 = 1) {
+      		error('Aborting the build due to non-compliances in IaC scanning.')
+    }
 	}
 }
 
