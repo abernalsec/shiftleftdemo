@@ -53,7 +53,7 @@ stage('Scan image with twistcli and Publish results to Jenkins') {
 }
 
 stage('Sandbox analysis of the Container Image') { 
-	sh "./twistcli sandbox --u $TL_USER --p $TL_PASS --address https://$TL_CONSOLE itresoldi/evilpetclinic:latest"
+	sh "sudo ./twistcli sandbox -u $TL_USER -p $TL_PASS --address https://$TL_CONSOLE itresoldi/evilpetclinic:latest"
 }
 
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
