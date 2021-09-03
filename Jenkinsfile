@@ -38,7 +38,7 @@ node {
     }
 	
 
-stage('Scan image with twistcli and Publish to Jenkins') {
+stage('Scan image with twistcli and Publish results to Jenkins') {
       try {
 	    sh 'docker pull itresoldi/evilpetclinic:latest'  
             withCredentials([usernamePassword(credentialsId: 'twistlock_creds', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
@@ -51,7 +51,9 @@ stage('Scan image with twistcli and Publish to Jenkins') {
             prismaCloudPublish resultsFilePattern: 'prisma-cloud-scan-results.json'
         }
 }
-  
+
+stage('Sandbox analysis of the Container Image') { 
+	sh "./twistcli sandbox --u $TL_USER --p $TL_PASS --address https://$TL_CONSOLE itresoldi/evilpetclinic:latest"
 
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
 	withDockerContainer(image: 'bridgecrew/jenkins_bridgecrew_runner:latest') {              
