@@ -52,10 +52,6 @@ stage('Scan image with twistcli and Publish results to Jenkins') {
         }
 }
 
-stage('Sandbox analysis of the Container Image') { 
-	sh "sudo ./twistcli sandbox -u $TL_USER -p $TL_PASS --address https://$TL_CONSOLE --output-file "sandbox.json" --analysis-duration itresoldi/evilpetclinic:latest"
-}
-
 stage('Scan K8s yaml manifest with Bridgecrew/checkov') {
 	withDockerContainer(image: 'bridgecrew/jenkins_bridgecrew_runner:latest') {              
 	sh "/run.sh aaba9c95-c632-5403-9762-24bbcd0a4611 https://github.com/ivan-tresoldi/shiftleftdemo"
